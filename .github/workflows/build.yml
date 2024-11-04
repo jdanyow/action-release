@@ -3,15 +3,10 @@ on:
   push:
     branches:
       - master
+      - sourcemaps-inject-test
 
 env:
-  # Variables defined in the repository
-  SENTRY_ORG: ${{ vars.SENTRY_ORG }}
-  # For master we have an environment variable that selects the action-release project
-  # instead of action-release-prs
-  # For other branches: https://sentry-ecosystem.sentry.io/releases/?project=4505075304693760
-  # For master branch: https://sentry-ecosystem.sentry.io/releases/?project=6576594
-  SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+
 
 jobs:
   docker-build:
@@ -61,15 +56,3 @@ jobs:
         cache-from: ghcr.io/${{ github.repository_owner }}/${{ matrix.target.image }}
         target: ${{ matrix.target.name }}
         build-args: BUILDKIT_INLINE_CACHE=1
-
-    # This step creates real Sentry releases for the action itself:
-    # https://sentry-ecosystem.sentry.io/releases/?project=6576594
-    - name: Sentry Release
-      uses: getsentry/action-release@v1
-      if: vars.SENTRY_ORG != ''
-      env:
-        SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        SENTRY_LOG_LEVEL: debug
-      with:
-        environment: 'production'
-        ignore_missing: true
